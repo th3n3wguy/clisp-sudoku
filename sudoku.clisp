@@ -1,0 +1,91 @@
+;This is where I define the board I wish to solve. If you would like to change the board,
+;input your numbers where they need to be and then use zeros for the blank spots.
+(defparameter *board*
+    (make-array '(9 9)
+        :initial-contents '(
+            (1 0 0 0 0 7 4 0 0)
+            (9 0 6 4 0 0 0 0 0)
+            (0 5 0 8 3 0 0 0 0)
+            (3 6 0 0 0 0 0 0 5)
+            (0 0 0 0 2 0 0 0 0)
+            (5 0 8 0 0 0 0 1 4)
+            (0 0 0 0 7 3 0 9 0)
+            (0 0 0 0 0 8 7 0 6)
+            (0 0 5 9 0 0 0 0 1)
+        )
+    )
+)
+ 
+;This function allows me to ensure that I am testing the correct row.
+(defun testrow (array index)
+    (let ((result (make-array 9)))
+    (dotimes (i 9)
+        (setf (elt result i)
+            (aref array index i)
+        )
+    )
+    result
+)
+ 
+;This function allows me to ensure that I am testing the correct column.
+(defun testcolumn (array index)
+    (let ((result (make-array 9)))
+    (dotimes (i 9)
+        (setf (elt result i)
+            (aref array i index)
+        )
+    )
+    result
+)
+ 
+;This function allows me to ensure that I am testing the correct 3x3 square.
+(defun testsquare (array n m)
+    (let ((result (make-array 9)))
+    (dotimes (i 3)
+        (dotimes (j 3)
+            (setf (elt result (+ (* i 3) j))
+                (aref array (+ n i) (+ m j))
+            )
+        )
+    )
+    result
+)
+ 
+;This is the function to test each of the 3 rules to ensure that the board is fully complient to them.
+(defun board-is-correct (board i j)
+    (let ((result t)))
+    (dotimes (k 9)
+        (when (or (> (count (1+ k) (testrow board i)) 1)
+                (> (count (1+ k) (testcolumn board j)) 1)
+                (> (count (1+ k) (testsquare board (* (floor (/ i 3)) 3)
+                (* (floor (/ j 3)) 3))) 1))
+            (setf result nil)
+        )
+     )
+     result
+))
+ 
+;Function to allow me to actually solve the board.
+(defun solve-sudoku (board)
+    (let ((filled t) m n))
+    (dotimes (i 9)
+        (dotimes (j 9)
+            (when (= (aref board i j) 0)
+                (setf filled nil m i n j)
+            )
+        )
+    )
+	;Checking to see if the board is filled up with numbers yet.    
+    (if filled
+		(describe board)
+        (dotimes (k 9)
+            (setf (aref board m n) (1+ k))
+            (when (board-is-correct board m n)
+				;Calling the testing function to ensure the board is correct...
+                (solve-sudoku board)
+            )
+			;if the board is not correct, then the program will reset the board to it's original state and try again.
+            (setf (aref board m n) 0)
+        )
+    )
+)
